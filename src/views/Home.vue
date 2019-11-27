@@ -1,6 +1,6 @@
 <template>
   <a-layout id="components-layout-demo-side" style="min-height: 100vh" theme="light">
-    <a-layout-header theme="dark" :style="{color:'#fff'}">这是头部</a-layout-header>
+    <a-layout-header theme="dark" :style="{color:'#fff'}">后台管理系统</a-layout-header>
     <a-layout>
       <a-layout-sider collapsible v-model="collapsed">
         <a-menu theme="dark" :defaultSelectedKeys="['1']" mode="inline">
