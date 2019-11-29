@@ -3,6 +3,9 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import ReCode from '../views/ReCode.vue'
 import DataCommon from '../views/DataCommon.vue'
+import CatalogMaintain from '../views/CatalogMaintain.vue'
+import CatalogMaintainCon from '../views/CatalogMaintainCon.vue'
+import CatalogMaintainOperation from '../views/CatalogMaintainOperation.vue'
 
 Vue.use(VueRouter)
 
@@ -14,16 +17,31 @@ const routes = [
     children:[
      {
       path: '/',
-      redirect: '/recode',
+      redirect: 'catalog-maintain',
+      component: CatalogMaintainCon,
+     },
+     {
+      path: 'recode',
       component: ReCode,
      },
      {
-      path: '/recode',
-      component: ReCode,
-     },
-     {
-      path: '/data-common',
+      path: 'data-common',
       component: DataCommon,
+     },
+     {
+       path: 'catalog-maintain',
+       component: CatalogMaintainCon,
+       children:[
+         {
+           path:'',
+           component: CatalogMaintain,
+
+         },
+         {
+           path: 'operation',
+           component: CatalogMaintainOperation,
+         }
+       ]
      },
     ]
   },

@@ -34,7 +34,7 @@
         <a-table
           :columns="columns"
           :rowSelection="rowSelection"
-          :dataSource="tabadatas"
+          :dataSource="tableDatas"
           :pagination="pagination"
           @change="pageChange"
         />
@@ -54,7 +54,7 @@ export default {
   },
   data() {
     return {
-      tabadatas: [],
+      tableDatas: [],
       columns,
       selTableName: "", //基础数据表名
       selTableDesc: "", //基础数据描
@@ -87,6 +87,7 @@ export default {
     }
   },
   created() {
+    
     this.getDatas();
   },
   methods: {
@@ -113,7 +114,7 @@ export default {
         .then(res => {
           console.log("这是请求后台的数据", res);
           this.pagination.total = res.data.body.total;  //获取数据总量，以便分页显示
-          this.tabadatas = getTabledatas(res.data.body.list);  //存储表格需要的数据
+          getTabledatas(res.data.body.list);  //过滤，存储表格需要的数据
         })
         .catch(function(error) {
           // handle error
@@ -227,9 +228,9 @@ const columns = [
   }
 ];
 
-// 将请求到的数据过滤一下，只存储表格需要的数据
+// 将请求到的数据过滤一下，存储表格需要的数据
 function getTabledatas(resDatas) {
-  let tabadatas = resDatas.map(item => {
+ this.tableDatas = resDatas.map(item => {
     let arr = {};
     arr.key = item.baseDataUseAgainConfId;
     arr.tableName = item.tableName;
@@ -248,7 +249,7 @@ function getTabledatas(resDatas) {
     }
     return arr;
   });
-  return tabadatas;
+  
 }
 </script>
 
@@ -307,6 +308,7 @@ function getTabledatas(resDatas) {
   clear: both;
   height: 0;
 }
+
 .show .operation button {
   margin-left: 5px;
 }

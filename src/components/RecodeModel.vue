@@ -74,7 +74,6 @@ export default {
       ModalText: "Content of the modal!!!",
       confirmLoading: false,  //加载中的转圈圈
       formInputLayout,  //设置form的格式
-      formInputLayout,
       formRidoLayout,
       form: this.$form.createForm(this, { name: "add_data_rule" }),  //创建form
       dataUpdatedBy: "Micky"
@@ -132,9 +131,7 @@ export default {
           //停止确定按钮的转动
           this.confirmLoading = false;
 
-          //添加成功
-          if (res.data.is_success) {
-            //提示添加成功
+          if (res.data.is_success) {  //添加成功
             this.$message.success("添加成功!");
             
             //触发父组件，隐藏该弹窗,1为确定，0为返回，父组件更新数据

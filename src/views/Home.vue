@@ -16,6 +16,9 @@
               代码重用设置
               </a-menu-item>
           </a-sub-menu>
+          <a-menu-item key="3" @click="onCatalogMaintain()">
+            主题目录维护
+          </a-menu-item>
         </a-menu>
       </a-layout-sider>
       <a-layout>
@@ -40,6 +43,10 @@ export default {
     },
     onBase(){
       this.$router.push('/data-common')
+    },
+    onCatalogMaintain(){
+      this.$router.push('/catalog-maintain')
+
     }
   }
 };
