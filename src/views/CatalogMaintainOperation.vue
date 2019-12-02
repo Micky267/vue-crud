@@ -34,6 +34,7 @@
         :wrapper-col="formInputLayout.wrapperCol"
         label="所属父类"
       >
+        {{detailsData.parentCatalogName?detailsData.parentCatalogName:''}}
         <a-button type="primary" ghost>选择</a-button>
       </a-form-item>
     </a-form>
@@ -42,7 +43,6 @@
       <a-button type="default" @click="onGoback">返回</a-button>
       <a-button type="primary" @click="onAddData" :loading="loading">{{operationBt}}</a-button>
     </div>
-    {{test}}
   </div>
 </template>
 
@@ -56,42 +56,24 @@ export default {
       formInputLayout,
       loading: false,
       operationBt: "添加",
-      detailsData: { name: "原来的" },
-      test1: "2"
+      detailsData
     };
-  },
-
-  computed: {
-    test() {
-      return this.test1;
-    }
   },
 
   created() {
     if (this.$route.query.operation == "update") {
       this.operationBt = "修改";
     }
-    MsgBus.$on("details", e => {
-      console.log("e", e);
-      // this.detailsData = { name: "1234" };
-      console.log("on的detailsData", this);
-      // var x = JSON.parse(JSON.stringify(this.detailsData))
-      this.test1 = "触发details事件";
-    });
   },
 
   mounted() {
-    // this.test = "触发details事件";
-
-    this.$nextTick(function() {
+    //更改表单数据
+    if (this.$route.query.operation == "update") {
       this.form.setFieldsValue({
-        catalogName: this.test
+        catalogName: this.detailsData.catalogName,
+        catalogNo: this.detailsData.catalogNo
       });
-    });
-
-    console.log(" this.detailsData.name ", this.detailsData.name);
-    // this.detailsData.name = "890";
-    // console.log(' this.detailsData.name ', this.detailsData.name )
+    }
   },
 
   methods: {
@@ -109,28 +91,34 @@ export default {
 
     //点击返回按钮
     onGoback() {
+      //数据重置
+      detailsData = {};
       this.$router.push("/catalog-maintain");
     },
 
     //发送请求
     reqDatas(values) {
+      console.log("detailsData", this.detailsData);
       const url = "/api/subjectCatalog/save";
       const params = {
+        id: this.detailsData.id,
         catalogName: values.catalogName,
         catalogNo: values.catalogNo,
         createMan: "Micky",
         parentCatalogName: "非税系统",
-        pid: "hjuhgyujhikjuhy"
+        pid: "340d4b30a4d845498f3410eff2cd5917"
       };
       this.axios
         .post(url, params)
         .then(res => {
           this.loading = false;
           if (res.data.is_success) {
-            this.$message.success("添加成功!");
+            this.$message.success("添加或修改成功!");
+
+            //数据重置
+            detailsData = {};
             //返回到主界面
             this.onGoback();
-            console.log("添加信息成功", res);
           } else {
             this.$message.error("失败!" + res.data.body);
           }
@@ -146,6 +134,15 @@ const formInputLayout = {
   labelCol: { span: 8 },
   wrapperCol: { span: 12 }
 };
+
+let detailsData = {};
+
+//监听广播
+//先写一个全局的detailsData变量存储接收到广播的值
+//将vue实例里data的detailsData的值设置为该变量
+MsgBus.$on("details", e => {
+  detailsData = e;
+});
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

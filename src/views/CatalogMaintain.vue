@@ -8,7 +8,7 @@
         <div class="operation">
           <a-button type="primary" class="sel-bt" @click="onOperation('add')">新增</a-button>
           <a-button type="primary" class="sel-bt" @click="onOperation('update')">修改</a-button>
-          <a-button type="primary" class="sel-bt">删除</a-button>
+          <a-button type="primary" class="sel-bt" @click="onDelete">删除</a-button>
         </div>
         <div class="details">
           <div class="title">
@@ -20,7 +20,7 @@
             <a-col :span="12">主题目录名称：{{details.catalogName}}</a-col>
           </a-row>
           <a-row>
-            <a-col :span="12">所属父类：{{details.parentCatalogName}}</a-col>
+            <a-col :span="12">所属父类：{{details.parentCatalogName?details.parentCatalogName:'无'}}</a-col>
           </a-row>
         </div>
       </a-layout-content>
@@ -29,20 +29,20 @@
 </template>
 
 <script>
-import MsgBus from '../components/msgBus.js';
+import MsgBus from "../components/msgBus.js";
 export default {
   name: "catalog-maintain",
   data() {
     return {
-      treeData:[],   //树目录的数据
-      details: {},   //目录对应的详情数据
+      treeData: [], //树目录的数据
+      details: {} //目录对应的详情数据
     };
   },
   created() {
     this.init();
   },
-  methods: {
 
+  methods: {
     //发送请求，拿到目录的所有数据
     reqAllDatas() {
       const url = "/api/subjectCatalog/findAll";
@@ -95,31 +95,57 @@ export default {
       }
 
       if (ope == "update") {
-        MsgBus.$emit('details',this.details)
+        MsgBus.$emit("details", this.details);
         this.$router.push({
           path: "/catalog-maintain/operation",
           query: { operation: "update" }
         });
       }
     },
-
     //将数据过滤成树形结构需要的数据
     getTreeDatas(resDatas) {
-      let jsonDatas =  JSON.stringify(resDatas)+''
-      let reId = jsonDatas.replace(/id/g,"key")
-      let reTitle = reId.replace(/catalogName/g,"title")
-      this.treeData = JSON.parse(reTitle)
+      let jsonDatas = JSON.stringify(resDatas) + "";
+      let reId = jsonDatas.replace(/id/g, "key");
+      let reTitle = reId.replace(/catalogName/g, "title");
+      this.treeData = JSON.parse(reTitle);
     },
-
 
     //获取点击到的key
     onSelect(selectedKeys) {
       this.reqTheDataDetails(selectedKeys);
+    },
+
+    //删除操作
+    onDelete() {
+      this.$confirm({
+        title: "删除",
+        content: "确定删除所选项？",
+        onOk:()=> {
+            this.reqDelete();
+        },
+        onCancel() {}
+      });
+    },
+
+    //发送删除请求
+    reqDelete() {
+      const url = "/api/subjectCatalog/delete/" + this.details.id;
+      this.axios
+        .delete(url)
+        .then(res => {
+          this.$message.success("删除成功！");
+          //更新表格
+          this.init();
+          //重置数据
+          console.log("删除数据成功返回的数据", res);
+        })
+        .catch(function(error) {
+          console.log("删除数据错误信息", error);
+        });
     }
   }
 };
-
-
+let i = 1;
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
