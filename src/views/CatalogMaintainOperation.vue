@@ -40,8 +40,10 @@
     </a-form>
 
     <div class="operation">
-      <a-button type="default" @click="onGoback">返回</a-button>
-      <a-button type="primary" @click="onAddData" :loading="loading">{{operationBt}}</a-button>
+      <a-row>
+          <a-button type="default" @click="onGoback">返回</a-button>
+          <a-button type="primary" @click="onAddData" :loading="loading">{{operationBt}}</a-button>
+      </a-row>
     </div>
   </div>
 </template>
@@ -132,7 +134,7 @@ export default {
 
 const formInputLayout = {
   labelCol: { span: 8 },
-  wrapperCol: { span: 12 }
+  wrapperCol: { span: 8 }
 };
 
 let detailsData = {};
@@ -155,12 +157,17 @@ MsgBus.$on("details", e => {
   padding-top: 24px;
 }
 .operation {
-  float: right;
-  margin-right: 100px;
+  width: 100%;
+}
+
+.operation .ant-row{
+  text-align: center;
 }
 
 .operation button {
   margin-top: 20px;
-  margin-right: 10px;
+  margin-right: 80px;
 }
+
+
 </style>

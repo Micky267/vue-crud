@@ -1,8 +1,8 @@
 <template>
   <div class="catalog-maintain">
     <a-layout>
-      <a-layout-sider style="background-color: #fff">
-        <a-tree @select="onSelect" :treeData="treeData" />
+      <a-layout-sider style="background-color: #fff;min-width:250px">
+        <a-tree @select="onSelect" :treeData="treeData" :defaultSelectedKeys="defaultSelectedKeys" />
       </a-layout-sider>
       <a-layout-content>
         <div class="operation">
@@ -35,7 +35,9 @@ export default {
   data() {
     return {
       treeData: [], //树目录的数据
-      details: {} //目录对应的详情数据
+      details: {}, //目录对应的详情数据
+      defaultSelectedKeys: [], //默认选中的树节点
+      ifSelect: true //当前是否有树节点被选中
     };
   },
   created() {
@@ -52,6 +54,7 @@ export default {
           .then(res => {
             if (res.data.is_success) {
               this.getTreeDatas(res.data.body); //过滤成树结构需要的数据
+              this.defaultSelectedKeys[0] = res.data.body[0].id; //设置默认选中的树节点
               resolve(res.data.body[0].id);
             }
           })
@@ -95,13 +98,18 @@ export default {
       }
 
       if (ope == "update") {
-        MsgBus.$emit("details", this.details);
-        this.$router.push({
-          path: "/catalog-maintain/operation",
-          query: { operation: "update" }
-        });
+        if (this.ifSelect) {
+          MsgBus.$emit("details", this.details);
+          this.$router.push({
+            path: "/catalog-maintain/operation",
+            query: { operation: "update" }
+          });
+        } else {
+          this.$message.warning("请选择操作对象");
+        }
       }
     },
+
     //将数据过滤成树形结构需要的数据
     getTreeDatas(resDatas) {
       let jsonDatas = JSON.stringify(resDatas) + "";
@@ -111,20 +119,32 @@ export default {
     },
 
     //获取点击到的key
-    onSelect(selectedKeys) {
-      this.reqTheDataDetails(selectedKeys);
+    onSelect(selectedKeys, e) {
+      if (e.selected) {
+        this.reqTheDataDetails(selectedKeys);
+        console.log("点击选项时显示selectedKeys", selectedKeys);
+        console.log("点击选项时显示e", e);
+      } else {
+        this.details = {}; //当前就没有详情数据
+      }
+      this.ifSelect = e.selected;
     },
 
     //删除操作
     onDelete() {
-      this.$confirm({
-        title: "删除",
-        content: "确定删除所选项？",
-        onOk:()=> {
+      if (this.ifSelect) {
+        this.$confirm({
+          title: "删除",
+          content: "确定删除所选项？",
+          okText: "确认",
+          cancelText: "取消",
+          onOk: () => {
             this.reqDelete();
-        },
-        onCancel() {}
-      });
+          }
+        });
+      } else {
+        this.$message.warning("请选择操作对象 ");
+      }
     },
 
     //发送删除请求

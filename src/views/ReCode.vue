@@ -114,7 +114,7 @@ export default {
         .then(res => {
           console.log("这是请求后台的数据", res);
           this.pagination.total = res.data.body.total;  //获取数据总量，以便分页显示
-          getTabledatas(res.data.body.list);  //过滤，存储表格需要的数据
+         this.tableDatas = getTabledatas(res.data.body.list);  //过滤，存储表格需要的数据
         })
         .catch(function(error) {
           // handle error
@@ -230,7 +230,8 @@ const columns = [
 
 // 将请求到的数据过滤一下，存储表格需要的数据
 function getTabledatas(resDatas) {
- this.tableDatas = resDatas.map(item => {
+
+  return resDatas.map(item => {
     let arr = {};
     arr.key = item.baseDataUseAgainConfId;
     arr.tableName = item.tableName;
@@ -249,7 +250,6 @@ function getTabledatas(resDatas) {
     }
     return arr;
   });
-  
 }
 </script>
 
