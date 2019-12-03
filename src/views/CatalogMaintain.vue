@@ -2,7 +2,7 @@
   <div class="catalog-maintain">
     <a-layout>
       <a-layout-sider style="background-color: #fff;min-width:250px">
-        <a-tree @select="onSelect" :treeData="treeData" :defaultSelectedKeys="defaultSelectedKeys" />
+        <a-tree @select="onSelect" :treeData="resDatas" :defaultSelectedKeys="defaultSelectedKeys" />
       </a-layout-sider>
       <a-layout-content>
         <div class="operation">
@@ -34,7 +34,7 @@ export default {
   name: "catalog-maintain",
   data() {
     return {
-      treeData: [], //树目录的数据
+      resDatas: [], //请求到的目录数据
       details: {}, //目录对应的详情数据
       defaultSelectedKeys: [], //默认选中的树节点
       ifSelect: true //当前是否有树节点被选中
@@ -53,9 +53,13 @@ export default {
           .get(url)
           .then(res => {
             if (res.data.is_success) {
-              this.getTreeDatas(res.data.body); //过滤成树结构需要的数据
+              this.resDatas = res.data.body;
+              this.getTreeDatas(); //将请求到的数据添加key和title，这样数目录才可以识别
+              this.resDatas = resDatasBus;
               this.defaultSelectedKeys[0] = res.data.body[0].id; //设置默认选中的树节点
               resolve(res.data.body[0].id);
+
+              console.log("目录数据", res.data.body);
             }
           })
           .catch(res => {
@@ -111,11 +115,16 @@ export default {
     },
 
     //将数据过滤成树形结构需要的数据
-    getTreeDatas(resDatas) {
-      let jsonDatas = JSON.stringify(resDatas) + "";
-      let reId = jsonDatas.replace(/id/g, "key");
-      let reTitle = reId.replace(/catalogName/g, "title");
-      this.treeData = JSON.parse(reTitle);
+    getTreeDatas(arrDatas) {
+      let arr = arrDatas ? arrDatas : this.resDatas; //如果是第一次使用该函数，则是data里的数据，如果不是，则是递归时传入的数据
+      arr.forEach(value => {
+        if (Array.isArray(value.children)) {
+          this.getTreeDatas(value.children);
+        }
+        value.key = value.id;
+        value.title = value.catalogName;
+      });
+      resDatasCache = arr;  //由于是递归，会多次赋值操作，如果直接将数据赋值给数目录，则数目录会多次刷新，影响性能，所以先用一个值缓存下来，最后再将该值赋给数目录就好
     },
 
     //获取点击到的key
@@ -166,6 +175,7 @@ export default {
   }
 };
 let i = 1;
+let resDatasBus = [];
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
