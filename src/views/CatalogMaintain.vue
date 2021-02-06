@@ -1,14 +1,14 @@
 <template>
   <div class="catalog-maintain">
     <a-layout>
-      <a-layout-sider style="background-color: #fff">
-        <a-tree @select="onSelect" :treeData="treeData" />
+      <a-layout-sider style="background-color: #fff;min-width:250px">
+        <a-tree @select="onSelect" :treeData="resDatas" :defaultSelectedKeys="defaultSelectedKeys" />
       </a-layout-sider>
       <a-layout-content>
         <div class="operation">
           <a-button type="primary" class="sel-bt" @click="onOperation('add')">新增</a-button>
           <a-button type="primary" class="sel-bt" @click="onOperation('update')">修改</a-button>
-          <a-button type="primary" class="sel-bt">删除</a-button>
+          <a-button type="primary" class="sel-bt" @click="onDelete">删除</a-button>
         </div>
         <div class="details">
           <div class="title">
@@ -20,7 +20,7 @@
             <a-col :span="12">主题目录名称：{{details.catalogName}}</a-col>
           </a-row>
           <a-row>
-            <a-col :span="12">所属父类：{{details.parentCatalogName}}</a-col>
+            <a-col :span="12">所属父类：{{details.parentCatalogName?details.parentCatalogName:'无'}}</a-col>
           </a-row>
         </div>
       </a-layout-content>
@@ -29,20 +29,22 @@
 </template>
 
 <script>
-import MsgBus from '../components/msgBus.js';
+import MsgBus from "../components/msgBus.js";
 export default {
   name: "catalog-maintain",
   data() {
     return {
-      treeData:[],   //树目录的数据
-      details: {},   //目录对应的详情数据
+      resDatas: [], //请求到的目录数据
+      details: {}, //目录对应的详情数据
+      defaultSelectedKeys: [], //默认选中的树节点
+      ifSelect: true //当前是否有树节点被选中
     };
   },
   created() {
     this.init();
   },
-  methods: {
 
+  methods: {
     //发送请求，拿到目录的所有数据
     reqAllDatas() {
       const url = "/api/subjectCatalog/findAll";
@@ -51,8 +53,13 @@ export default {
           .get(url)
           .then(res => {
             if (res.data.is_success) {
-              this.getTreeDatas(res.data.body); //过滤成树结构需要的数据
+              this.resDatas = res.data.body;
+              this.getTreeDatas(); //将请求到的数据添加key和title，这样数目录才可以识别
+              this.resDatas = resDatasBus;
+              this.defaultSelectedKeys[0] = res.data.body[0].id; //设置默认选中的树节点
               resolve(res.data.body[0].id);
+
+              console.log("目录数据", res.data.body);
             }
           })
           .catch(res => {
@@ -95,32 +102,80 @@ export default {
       }
 
       if (ope == "update") {
-        // MsgBus.$emit('details',this.details)
-        MsgBus.$emit('details',{name:'succeful'})
-        this.$router.push({
-          path: "/catalog-maintain/operation",
-          query: { operation: "update" }
-        });
+        if (this.ifSelect) {
+          MsgBus.$emit("details", this.details);
+          this.$router.push({
+            path: "/catalog-maintain/operation",
+            query: { operation: "update" }
+          });
+        } else {
+          this.$message.warning("请选择操作对象");
+        }
       }
     },
 
     //将数据过滤成树形结构需要的数据
-    getTreeDatas(resDatas) {
-      let jsonDatas =  JSON.stringify(resDatas)+''
-      let reId = jsonDatas.replace(/id/g,"key")
-      let reTitle = reId.replace(/catalogName/g,"title")
-      this.treeData = JSON.parse(reTitle)
+    getTreeDatas(arrDatas) {
+      let arr = arrDatas ? arrDatas : this.resDatas; //如果是第一次使用该函数，则是data里的数据，如果不是，则是递归时传入的数据
+      arr.forEach(value => {
+        if (Array.isArray(value.children)) {
+          this.getTreeDatas(value.children);
+        }
+        value.key = value.id;
+        value.title = value.catalogName;
+      });
+      resDatasCache = arr;  //由于是递归，会多次赋值操作，如果直接将数据赋值给数目录，则数目录会多次刷新，影响性能，所以先用一个值缓存下来，最后再将该值赋给数目录就好
     },
 
-
     //获取点击到的key
-    onSelect(selectedKeys) {
-      this.reqTheDataDetails(selectedKeys);
+    onSelect(selectedKeys, e) {
+      if (e.selected) {
+        this.reqTheDataDetails(selectedKeys);
+        console.log("点击选项时显示selectedKeys", selectedKeys);
+        console.log("点击选项时显示e", e);
+      } else {
+        this.details = {}; //当前就没有详情数据
+      }
+      this.ifSelect = e.selected;
+    },
+
+    //删除操作
+    onDelete() {
+      if (this.ifSelect) {
+        this.$confirm({
+          title: "删除",
+          content: "确定删除所选项？",
+          okText: "确认",
+          cancelText: "取消",
+          onOk: () => {
+            this.reqDelete();
+          }
+        });
+      } else {
+        this.$message.warning("请选择操作对象 ");
+      }
+    },
+
+    //发送删除请求
+    reqDelete() {
+      const url = "/api/subjectCatalog/delete/" + this.details.id;
+      this.axios
+        .delete(url)
+        .then(res => {
+          this.$message.success("删除成功！");
+          //更新表格
+          this.init();
+          //重置数据
+          console.log("删除数据成功返回的数据", res);
+        })
+        .catch(function(error) {
+          console.log("删除数据错误信息", error);
+        });
     }
   }
 };
-
-
+let i = 1;
+let resDatasBus = [];
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
