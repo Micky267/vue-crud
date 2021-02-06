@@ -56,42 +56,25 @@ export default {
       formInputLayout,
       loading: false,
       operationBt: "添加",
-      detailsData: { name: "原来的" },
-      test1: "2"
+      detailsData,
     };
-  },
-
-  computed: {
-    test() {
-      return this.test1;
-    }
   },
 
   created() {
     if (this.$route.query.operation == "update") {
       this.operationBt = "修改";
     }
-    MsgBus.$on("details", e => {
-      console.log("e", e);
-      // this.detailsData = { name: "1234" };
-      console.log("on的detailsData", this);
-      // var x = JSON.parse(JSON.stringify(this.detailsData))
-      this.test1 = "触发details事件";
-    });
   },
 
   mounted() {
-    // this.test = "触发details事件";
 
-    this.$nextTick(function() {
-      this.form.setFieldsValue({
-        catalogName: this.test
-      });
-    });
+    // this.$nextTick(function() {
+    //   this.form.setFieldsValue({
+    //     catalogName: this.test
+    //   });
+    // });
+  console.log('detailsData',detailsData)
 
-    console.log(" this.detailsData.name ", this.detailsData.name);
-    // this.detailsData.name = "890";
-    // console.log(' this.detailsData.name ', this.detailsData.name )
   },
 
   methods: {
@@ -146,6 +129,16 @@ const formInputLayout = {
   labelCol: { span: 8 },
   wrapperCol: { span: 12 }
 };
+
+ //当emit发送广播时，on会马上接收到信息，这时候该组件还未渲染完成，因此需要拿这个变量先做缓存
+ //当组件渲染完成 再拿这个数据
+let detailsData = null;  
+
+
+MsgBus.$on("details", e => {
+  console.log('触发到了MsgBus.$on')
+  detailsData = e
+});
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

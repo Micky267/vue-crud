@@ -95,7 +95,8 @@ export default {
       }
 
       if (ope == "update") {
-        MsgBus.$emit('details',this.details)
+        // MsgBus.$emit('details',this.details)
+        MsgBus.$emit('details',{name:'succeful'})
         this.$router.push({
           path: "/catalog-maintain/operation",
           query: { operation: "update" }
