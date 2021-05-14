@@ -4,11 +4,11 @@
  * @Autor: chenmeiqi
  * @LastEditors: chenmeiqi
  * @Date: 2021-05-14 10:34:25
- * @LastEditTime: 2021-05-14 17:45:01
+ * @LastEditTime: 2021-05-14 18:11:58
 -->
 <template>
   <div class="test">
-  test 我是zs 我是ls
+  test 我是zs 我是ls1 我是ww
   <router-view/>
   </div>
 </template>
