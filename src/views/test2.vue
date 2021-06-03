@@ -5,7 +5,7 @@
       @expand="onExpand"
       :expandedKeys="expandedKeys"
       :autoExpandParent="autoExpandParent"
-      :treeData="gData1"
+      :treeData="gData"
     >
       <template slot="title" slot-scope="{title}">
         <span v-if="title.indexOf(searchValue) > -1">
@@ -20,18 +20,47 @@
 </template>
 
 <script>
+const x = 3;
+const y = 2;
+const z = 1;
+const gData = [];
+
+const generateData = (_level, _preKey, _tns) => {
+  const preKey = _preKey || "0";
+  const tns = _tns || gData;
+
+  const children = [];
+  for (let i = 0; i < x; i++) {
+    const key = `${preKey}-${i}`;
+    tns.push({ title: key, key, scopedSlots: { title: "title" } });
+    if (i < y) {
+      children.push(key);
+    }
+  }
+  if (_level < 0) {
+    return tns;
+  }
+  const level = _level - 1;
+  children.forEach((key, index) => {
+    tns[index].children = [];
+    return generateData(level, key, tns[index].children);
+  });
+};
+generateData(z);
 
 const dataList = [];
 const generateList = data => {
   for (let i = 0; i < data.length; i++) {
     const node = data[i];
     const key = node.key;
-    dataList.push({ key:node.title, title: node.title });
+    dataList.push({ key, title: key });
     if (node.children) {
       generateList(node.children, node.key);
     }
   }
 };
+generateList(gData);
+
 const getParentKey = (key, tree) => {
   let parentKey;
   for (let i = 0; i < tree.length; i++) {
@@ -52,63 +81,8 @@ export default {
       expandedKeys: [],
       searchValue: "",
       autoExpandParent: true,
-      gData1: [
-        {
-          key: "1",
-          title: "1",
-          scopedSlots: {
-            title: "title"
-          },
-          children: [
-            {
-              key: "哈哈",
-              title: "哈哈",
-              scopedSlots: {
-                title: "title"
-              }
-            },
-            {
-              key: "一体化系统3",
-              title: "一体化系统3",
-              scopedSlots: {
-                title: "title"
-              }
-            }
-          ]
-        },
-        {
-          key: "2",
-          title: "一体化系统4",
-          scopedSlots: {
-            title: "title"
-          },
-          children: [
-            {
-              key: "21",
-              title: "一体化系统5",
-              scopedSlots: {
-                title: "title"
-              }
-            },
-            {
-              key: "22",
-              title: "一体化系统6",
-              scopedSlots: {
-                title: "title"
-              }
-            }
-          ]
-        }
-      ],
+      gData
     };
-  },
-  mounted() {
-    // console.log('gData',gData)
-    // console.log('gData1',this.gData1)
-    // console.log("----------")
-    // generateList(gData);
-    generateList(this.gData1);
-    console.log("dataList", dataList);
   },
   methods: {
     onExpand(expandedKeys) {
@@ -120,11 +94,12 @@ export default {
       const expandedKeys = dataList
         .map(item => {
           if (item.key.indexOf(value) > -1) {
-            return getParentKey(item.key, this.gData1);
+            return getParentKey(item.key, gData);
           }
           return null;
         })
         .filter((item, i, self) => item && self.indexOf(item) === i);
+        console.log('expandedKeys',expandedKeys)
       Object.assign(this, {
         expandedKeys,
         searchValue: value,

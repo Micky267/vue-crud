@@ -3,9 +3,9 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import ReCode from '../views/ReCode.vue'
 import DataCommon from '../views/DataCommon.vue'
-import CatalogMaintain from '../views/CatalogMaintain.vue'
-import CatalogMaintainCon from '../views/CatalogMaintainCon.vue'
-import CatalogMaintainOperation from '../views/CatalogMaintainOperation.vue'
+import CatalogMaintain from '../views/catalog/CatalogMaintain.vue'
+import CatalogMaintainCon from '../views/catalog/CatalogMaintainCon.vue'
+import CatalogMaintainOperation from '../views/catalog/CatalogMaintainOperation.vue'
 
 Vue.use(VueRouter)
 

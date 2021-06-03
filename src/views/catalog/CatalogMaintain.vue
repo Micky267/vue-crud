@@ -14,7 +14,6 @@
           <div class="title">
             <h2>主题目录</h2>
           </div>
-
           <a-row>
             <a-col :span="12">主题目录编号：{{details.catalogNo}}</a-col>
             <a-col :span="12">主题目录名称：{{details.catalogName}}</a-col>
@@ -25,11 +24,16 @@
         </div>
       </a-layout-content>
     </a-layout>
+
+    <Test />
+    <Test2 />
   </div>
 </template>
 
 <script>
-import MsgBus from "../components/msgBus.js";
+import MsgBus from "../../components/msgBus.js";
+import Test from "../../views/test.vue";
+import Test2 from "../../views/test2.vue";
 export default {
   name: "catalog-maintain",
   data() {
@@ -54,12 +58,10 @@ export default {
           .then(res => {
             if (res.data.is_success) {
               this.resDatas = res.data.body;
-              this.getTreeDatas(); //将请求到的数据添加key和title，这样数目录才可以识别
-              this.resDatas = resDatasBus;
+              this.getTreeDatas(this.resDatas); //将请求到的数据添加key和title，这样数目录才可以识别
               this.defaultSelectedKeys[0] = res.data.body[0].id; //设置默认选中的树节点
               resolve(res.data.body[0].id);
-
-              console.log("目录数据", res.data.body);
+              console.log("过滤后的目录数据", this.resDatas);
             }
           })
           .catch(res => {
@@ -70,7 +72,7 @@ export default {
 
     //发送请求，获取指定目录的详情
     reqTheDataDetails(id) {
-      const url = "/api//subjectCatalog/findOne/" + id;
+      const url = "/api/subjectCatalog/findOne/" + id;
       this.axios
         .get(url)
         .then(res => {
@@ -94,6 +96,7 @@ export default {
     //跳转到操作界面
     onOperation(ope) {
       if (ope == "add") {
+        MsgBus.$emit("gdata", this.resDatas);
         this.$router.push({
           path: "/catalog-maintain/operation",
           query: { operation: "add" }
@@ -103,7 +106,7 @@ export default {
 
       if (ope == "update") {
         if (this.ifSelect) {
-          MsgBus.$emit("details", this.details);
+          MsgBus.$emit("details", this.details, this.resDatas);
           this.$router.push({
             path: "/catalog-maintain/operation",
             query: { operation: "update" }
@@ -116,15 +119,17 @@ export default {
 
     //将数据过滤成树形结构需要的数据
     getTreeDatas(arrDatas) {
-      let arr = arrDatas ? arrDatas : this.resDatas; //如果是第一次使用该函数，则是data里的数据，如果不是，则是递归时传入的数据
-      arr.forEach(value => {
-        if (Array.isArray(value.children)) {
-          this.getTreeDatas(value.children);
-        }
-        value.key = value.id;
-        value.title = value.catalogName;
-      });
-      resDatasCache = arr;  //由于是递归，会多次赋值操作，如果直接将数据赋值给数目录，则数目录会多次刷新，影响性能，所以先用一个值缓存下来，最后再将该值赋给数目录就好
+      if (Array.isArray(arrDatas))
+        arrDatas.forEach(value => {
+          //为节点增加属性
+          value.key = value.id;
+          value.title = value.catalogName;
+          value.scopedSlot = { title: "title" };
+          //如果属性children不为空
+          if (value.children) {
+            this.getTreeDatas(value.children);
+          }
+        });
     },
 
     //获取点击到的key
@@ -138,6 +143,28 @@ export default {
       }
       this.ifSelect = e.selected;
     },
+
+    // tree(resDatas) {
+    //   //先判断是不是数组
+    //   if (Array.isArray(resDatas)) {
+    //     resDatas.forEach((item, index) => {
+
+    //       //为节点增加属性
+    //       item.title = item.catalogName;
+    //       item.key = item.id;
+
+    //       //判断这个节点的children属性是否不为空
+    //       if (!item.children) {
+    //         this.tree(item.children);
+    //       }
+    //     });
+    //   }
+    //   //如果是数组的话，就开始遍历每一项
+
+    //   //如果这一项有children这个属性的话
+
+    //   //调用本身这个函数 参数传的是 children
+    // },
 
     //删除操作
     onDelete() {
@@ -172,10 +199,15 @@ export default {
           console.log("删除数据错误信息", error);
         });
     }
+  },
+
+  components: {
+    Test,
+    Test2
   }
 };
 let i = 1;
-let resDatasBus = [];
+let resDatasCache = [];
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

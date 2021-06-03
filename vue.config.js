@@ -1,5 +1,14 @@
+/*
+ * @Description: 
+ * @Version: 1.0
+ * @Autor: chenmeiqi
+ * @LastEditors: chenmeiqi
+ * @Date: 2019-12-03 11:03:37
+ * @LastEditTime: 2020-09-28 12:36:30
+ */
 module.exports = {
-    devServer: {
+  publicPath: './',
+  devServer: {
         proxy: {
             '/api': {
                 target: 'http://130.120.3.232:91/dintegrationapi',//设置你调用的接口域名和端口号 别忘了加http

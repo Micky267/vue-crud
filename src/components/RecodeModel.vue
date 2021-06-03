@@ -1,11 +1,13 @@
 <template>
   <div>
     <a-modal
-      title="Title"
+      title="新增"
       :visible="ifvisible"
       @ok="handleOk"
       :confirmLoading="confirmLoading"
       @cancel="handleCancel"
+      okText="确认"
+      cancelText="取消"
     >
       <div class="content">
         <a-form :form="form">
@@ -72,10 +74,10 @@ export default {
   data() {
     return {
       ModalText: "Content of the modal!!!",
-      confirmLoading: false,  //加载中的转圈圈
-      formInputLayout,  //设置form的格式
+      confirmLoading: false, //加载中的转圈圈
+      formInputLayout, //设置form的格式
       formRidoLayout,
-      form: this.$form.createForm(this, { name: "add_data_rule" }),  //创建form
+      form: this.$form.createForm(this, { name: "add_data_rule" }), //创建form
       dataUpdatedBy: "Micky"
     };
   },
@@ -107,7 +109,7 @@ export default {
     //点击弹出框返回键时
     handleCancel(e) {
       console.log("Clicked cancel button");
-      this.$emit("model-handle", 0);
+      this.$emit("add-model", 0);
       // this.ifvisible = false;
     },
 
@@ -127,13 +129,13 @@ export default {
       this.axios
         .post(url, params)
         .then(res => {
-
           //停止确定按钮的转动
           this.confirmLoading = false;
 
-          if (res.data.is_success) {  //添加成功
+          if (res.data.is_success) {
+            //添加成功
             this.$message.success("添加成功!");
-            
+
             //触发父组件，隐藏该弹窗,1为确定，0为返回，父组件更新数据
             this.$emit("add-model", 1);
 
@@ -151,7 +153,6 @@ export default {
           else {
             this.$message.error("添加失败！" + res.data.body);
           }
-          
         })
         .catch(function(error) {
           // handle error

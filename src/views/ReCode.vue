@@ -5,13 +5,13 @@
         <a-col :span="9">
           <div class="data-table-name select-data">
             <label>基础数据表名:</label>
-            <a-input placeholder="请输入..." v-model="selTableName" />
+            <a-input placeholder="请输入..." v-model="selectData.selTableName" />
           </div>
         </a-col>
         <a-col :span="9">
           <div class="data-name select-data">
             <label>基础数据名称:</label>
-            <a-input placeholder="请输入..." v-model="selTableDesc" />
+            <a-input placeholder="请输入..." v-model="selectData.selTableDesc" />
           </div>
         </a-col>
         <a-col :span="6">
@@ -56,19 +56,22 @@ export default {
     return {
       tableDatas: [],
       columns,
-      selTableName: "", //基础数据表名
-      selTableDesc: "", //基础数据描
       pagination: {
         showSizeChanger: true,
         total: 20, //设置获取到的数据总数
         defaultCurrent: 1
       },
-      currentPage: 1, //当前页,
-      pageSize: 10, //页面数据长度
       ModalText: "Content of the modal",
       confirmLoading: false,
       ifVisible: false, //显示对话框
-      selectedRowKeysData: [] //存储选中数据的id数组
+      selectedRowKeysData: [], //存储选中数据的id数组
+      selectData: {
+        //需要查询的数据
+        selTableName: "", //基础数据表名
+        selTableDesc: "", //基础数据描
+        currentPage: 1, //当前页,
+        pageSize: 10 //页面数据长度
+      }
     };
   },
 
@@ -76,7 +79,7 @@ export default {
     //表格选中时调用的属性
     rowSelection: function() {
       return {
-        selectedRowKeys: this.selectedRowKeysData,//设置当前选中的数据数组
+        selectedRowKeys: this.selectedRowKeysData, //设置当前选中的数据数组
 
         //当选中数据时，将所选数据赋值到全局变量的selectedRowKeysData中，以给其它数据调用
         onChange: selectedRowKeys => {
@@ -87,16 +90,14 @@ export default {
     }
   },
   created() {
-    
     this.getDatas();
   },
   methods: {
-
     //翻页 和 更改页面数据长度 触发
     pageChange: function(pagination) {
-      this.currentPage = pagination.current;  //更新全局的当前页，方便
-      console.log("this.currentPage", this.currentPage);
-      this.pageSize = pagination.pageSize;
+      this.selectData.currentPage = pagination.current; //更新全局的当前页，方便
+      console.log("this.selectData.currentPage", this.selectData.currentPage);
+      this.selectData.pageSize = pagination.pageSize;
       this.getDatas();
     },
 
@@ -104,17 +105,17 @@ export default {
     getDatas: function() {
       const url = "/api/codeUseAgainConf/findForPageByConditions";
       const params = {
-        tableName: this.selTableName,
-        tableDesc: this.selTableDesc,
-        page: this.currentPage,
-        pageSize: this.pageSize
+        tableName: this.selectData.selTableName,
+        tableDesc: this.selectData.selTableDesc,
+        page: this.selectData.currentPage,
+        pageSize: this.selectData.pageSize
       };
       this.axios
         .get(url, { params })
         .then(res => {
           console.log("这是请求后台的数据", res);
-          this.pagination.total = res.data.body.total;  //获取数据总量，以便分页显示
-         this.tableDatas = getTabledatas(res.data.body.list);  //过滤，存储表格需要的数据
+          this.pagination.total = res.data.body.total; //获取数据总量，以便分页显示
+          this.tableDatas = getTabledatas(res.data.body.list); //过滤，存储表格需要的数据
         })
         .catch(function(error) {
           // handle error
@@ -124,16 +125,16 @@ export default {
 
     //查询
     onSelect: function() {
-      this.currentPage = 1;
+      this.selectData.currentPage = 1;
       this.getDatas();
     },
 
     //重置
     sellectReset: function() {
       //重置
-      this.selTableName = "";
-      this.selTableDesc = "";
-      this.currentPage = 1;
+      this.selectData.selTableName = "";
+      this.selectData.selTableDesc = "";
+      this.selectData.currentPage = 1;
 
       //更新表格
       this.getDatas();
@@ -144,11 +145,14 @@ export default {
       this.ifVisible = true;
     },
 
-    //添加数据里的监听对话框里面的确定或者返回键
+    //添加数据里的监听对话框里面的确定1或者返回键0
     addModel: function(code) {
+      
       if (code == 1) {
-        this.getDatas();// 更新表格数据
+        this.getDatas(); // 更新表格数据
       }
+
+      console.log('code',code)  
       this.ifVisible = false;
     },
 
@@ -163,14 +167,13 @@ export default {
       // 先判断用户是否有选中数据，如果没有则提示，有的话弹出删除框
       if (this.selectedRowKeysData.length == 0) {
         this.$message.warning("请选择要删除的数据");
-      } 
-      else {
+      } else {
         this.$confirm({
           title: "删除",
           content: "是否删除所选项目",
           okText: "确认",
           cancelText: "取消",
-          
+
           // 确定删除时，发送删除请求
           onOk: () => {
             console.log("要删除的是：" + this.selectedRowKeysData);
@@ -230,7 +233,6 @@ const columns = [
 
 // 将请求到的数据过滤一下，存储表格需要的数据
 function getTabledatas(resDatas) {
-
   return resDatas.map(item => {
     let arr = {};
     arr.key = item.baseDataUseAgainConfId;
